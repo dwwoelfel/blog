@@ -1,7 +1,5 @@
 import _ from 'lodash';
-import {connect} from 'react-redux';
 import {Link, IndexLink} from 'react-router';
-import {getPosts, getPost} from './actions';
 import marked from 'marked';
 import React, {PropTypes, Component} from 'react';
 
@@ -106,11 +104,7 @@ class App extends Component {
 
 const PER_PAGE = 10;
 
-const PostIndex = connect(state => state)(class extends Component {
-  static fetchData({dispatch}) {
-    return dispatch(getPosts());
-  }
-
+const PostIndex = class extends Component {
   static contextTypes = {
     router: PropTypes.object.isRequired,
   }
@@ -121,13 +115,14 @@ const PostIndex = connect(state => state)(class extends Component {
   }
 
   render() {
+    return <span>posts/index</span>
     const page = this._page();
     return (
       <div>
         <div>
-          {paginate(this.props.posts, page).map(
+          {/*{paginate(this.props.posts, page).map(
             post => <Post key={post.id} post={post} />
-          )}
+          )}*/}
         </div>
         <div style={PAGINATION_BAR_STYLE}>
           <Link
@@ -154,34 +149,20 @@ const PostIndex = connect(state => state)(class extends Component {
       0
     );
   }
-});
-
-function paginate(ps, page) {
-  const start = page * PER_PAGE;
-  return _.chain(ps)
-    .values()
-    .sortBy(p => -p.createdAt)
-    .slice(start, start + PER_PAGE)
-    .value()
-  ;
 }
 
-const PostShow = connect(
-  (state, ownProps) => ({post: state.posts[ownProps.params.post]}),
-)(class extends Component {
-  static fetchData({dispatch}, {params}) {
-    return dispatch(getPost(params.post));
-  }
 
+class PostShow extends Component {
   static propTypes = {
     params: PropTypes.object.isRequired,
     post: PropTypes.object,
   }
 
   render() {
+    return <span>post/show</span>;
     return this.props.post ? <Post post={this.props.post} /> : null;
   }
-});
+};
 
 // ------------------------------------------------------------
 // Components
