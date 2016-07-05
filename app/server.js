@@ -1,7 +1,3 @@
-import {Provider} from 'react-redux';
-import {renderToString} from 'react-dom/server';
-import {RouterContext, match} from 'react-router';
-import createStore from './create-store';
 import express from 'express';
 import fs from 'fs';
 import path from 'path';
@@ -34,52 +30,23 @@ app.get('/favicon.ico', (req, res) => {
   res.status(500).send('uh oh');
 });
 
-app.get('/:params?*', async function(req, res, next) {
-  match({routes, location: req.url}, async function(err, redirect, props) {
-    if (err) {
-      res.status(500).send(error.messsage);
-    } else if (redirect) {
-      res.redirect(302, redirect.pathname + redirect.search);
-    } else {
-      try {
-        const store = createStore();
-        const data = await fetchAllData(store, props);
-        res.status(200).send(
-          templ(
-            renderToString(
-              <Provider store={store}>
-                <RouterContext {...props} />
-              </Provider>
-            ),
-            store.getState(),
-          ),
-        );
-      } catch (e) {
-        next(e);
-      }
-    }
-  });
-});
-
-app.listen(process.env.PORT || 5000);
-
-// ------------------------------------------------------------
-// Helpers
-
-function templ(body, data) {
-  return `
+app.get('/:params?*', function(req, res) {
+  res.status(200).send(`
     <!doctype html>
     <html>
       <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <script type="text/javascript" src="http://fast.fonts.net/jsapi/15046032-4cb8-4f35-b794-7d6caf755c60.js"></script>
+        <script tpye="text/javascript">
+          window.MTIConfig = {EnableCustomFOUTHandler: true};
+        </script>
+        <script
+          type="text/javascript"
+          src="http://fast.fonts.net/jsapi/15046032-4cb8-4f35-b794-7d6caf755c60.js">
+        </script>
       </head>
       <body>
-        <div id="react-root">${body}</div>
-        <script>
-          window.__DATA__ = ${JSON.stringify(data)};
-        </script>
+        <div id="react-root"></div>
         <script
           src="${
             // stopachka(TODO) ahh need a cfg, or inital state
@@ -90,14 +57,7 @@ function templ(body, data) {
         </script>
       </body>
     </html>
-  `;
-}
+  `);
+});
 
-async function fetchAllData(store, props) {
-  return Promise.all(
-    props
-      .components
-      .filter(x => x.fetchData)
-      .map(x => x.fetchData(store, props))
-  );
-}
+app.listen(process.env.PORT || 5000);

@@ -5,7 +5,7 @@ import React, {Component} from 'react';
 import ReactDOM from 'react-dom';
 import routes from './routes';
 
-const store = createStore(window.__DATA__);
+const store = createStore();
 
 match({history: browserHistory, routes}, (err, redirect, props) => {
   ReactDOM.render(
