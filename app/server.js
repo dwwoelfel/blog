@@ -1,23 +1,20 @@
 import express from 'express';
 import fs from 'fs';
+import graphqlHTTP from 'express-graphql';
 import path from 'path';
 import React from 'react';
 import routes from './routes';
+import Schema from './data';
 
 const app = express();
 
-// ------------------------------------------------------------
-// API
-
-import POSTS from '../posts';
-
-app.get('/api/posts', (req, res) => {
-  res.status(200).send(JSON.stringify(POSTS));
-});
-
-app.get('/api/posts/:id', (req, res) => {
-  res.status(200).send(JSON.stringify(POSTS[req.params.id]));
-});
+app.use('/graphql', graphqlHTTP({
+  schema: Schema,
+  graphiql: true,
+  formatError({message, locations, stack}) {
+    return {message, locations, stack};
+  },
+}));
 
 // ------------------------------------------------------------
 // Static
