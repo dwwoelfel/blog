@@ -147,7 +147,7 @@ const PostIndex = createContainer(
                   title,
                   content,
                 }
-            	}
+              }
             }
           }
         `;
