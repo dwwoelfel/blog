@@ -138,7 +138,15 @@ const CLIENT_PROD_CONFIG = {
   entry: [CLIENT_ENTRY],
   output: CLIENT_OUTPUT,
   module: {
-    loaders: [BABEL_LOADER],
+    loaders: [
+      {
+        ...BABEL_LOADER,
+        query: {
+          ...BABEL_QUERY,
+          plugins: ['./relayPlugin', ...BABEL_QUERY.plugins]
+        },
+      },
+    ],
   },
   plugins: [
     // perf for libraries client side
