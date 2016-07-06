@@ -52,10 +52,10 @@ const {nodeInterface, nodeField} = nodeDefinitions(
     }
   },
   (obj) => {
-    if (obj instanceof POST_TYPE) {
-      return POST_TYPE;
-    } else if (obj instanceof VIEWER_TYPE) {
+    if (x.posts) {
       return VIEWER_TYPE;
+    } else {
+      return POST_TYPE;
     }
   },
 );
@@ -110,7 +110,7 @@ const QUERY_TYPE = new GraphQLObjectType({
     node: nodeField,
     viewer: {
       type: VIEWER_TYPE,
-      resolve: () => getViewer(),
+      resolve: getViewer,
     },
     post: {
       type: POST_TYPE,
