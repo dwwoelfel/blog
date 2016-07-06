@@ -71,7 +71,7 @@ const POST_STYLE = {
 
 const PAGINATION_BAR_STYLE = {
   display: 'flex',
-  justifyContent: 'space-between',
+  justifyContent: 'center',
 };
 
 const BTN_RESET = {
@@ -107,54 +107,45 @@ const PER_PAGE = 10;
 const PostIndex = createContainer(
   class extends Component {
     render() {
-      const page = this._page();
-      return <div>
-        page: {page}
-        viewer:
-          <pre>{JSON.stringify(this.props.viewer, null, 2)}</pre>
-      </div>
+      const posts = this.props.viewer.posts;
+
       return (
         <div>
           <div>
-            {/*{paginate(this.props.posts, page).map(
-              post => <Post key={post.id} post={post} />
-            )}*/}
+            {
+              posts
+              .edges
+              .map(x => x.node)
+              .map(post => <Post key={post.id} post={post} />)
+            }
           </div>
           <div style={PAGINATION_BAR_STYLE}>
             <Link
-              key={`newer${page}`}
               style={PAGINATION_BTN_STYLE}
-              to={`/page/${page - 1}`}>
-                &larr; Newer
-            </Link>
-            <Link
-              key={`older-${page}`}
-              style={PAGINATION_BTN_STYLE}
-              to={`/page/${page + 1}`}>
-                Older &rarr;
+              to={{
+                pathname: '/',
+                query: {first: posts.edges.length + PER_PAGE}
+              }}>
+                More &rarr;
             </Link>
           </div>
         </div>
       );
     }
-    _page = () => {
-      const n = +this.props.params.page;
-      return Math.max(
-        Number.isSafeInteger(n) ? n : 0,
-        0
-      );
-    }
   },
   {
+    initialVariables: {first: PER_PAGE},
     fragments: {
       viewer() {
         return Relay.QL`
           fragment on Viewer {
-            posts(first: 5) {
+            posts(first: $first) {
               edges {
                 cursor,
                 node {
+                  id,
                   title,
+                  content,
                 }
             	}
             }

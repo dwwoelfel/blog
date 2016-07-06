@@ -6,11 +6,11 @@ import React, {Component} from 'react';
 import ReactDOM from 'react-dom';
 
 const ViewerQuery = {
-  viewer(Component) {
+  viewer(Component, params) {
     return Relay.QL`
       query {
         viewer {
-          ${Component.getFragment('viewer')}
+          ${Component.getFragment('viewer', params)}
         }
       }
     `;
@@ -21,7 +21,7 @@ const PostQuery = {
   post(Component) {
     return Relay.QL`
       query {
-        post {
+        post(id: $id) {
           ${Component.getFragment('post')}
         }
       }
@@ -38,12 +38,6 @@ const routes =  (
       queries={ViewerQuery}
     />
     <Route
-      name="posts-index"
-      path="page/:page"
-      component={PostIndex}
-      queries={ViewerQuery}
-    />
-    <Route
       name="post-show"
       path="post/:post"
       component={PostShow}
@@ -54,15 +48,19 @@ const routes =  (
 
 export function useRelay(Component, props) {
   if (!isContainer(Component)) return <Component {...props} />
-  const {params, route} = props;
+  const {location, params, route} = props;
   const {name, queries} = route;
+  const relayParams = {
+    ...params,
+    first: location.query.first ? +location.query.first : 10
+  }
   return (
     <RootContainer
       Component={Component}
       renderFetched={
         (data) => <Component {...props} {...data} />
       }
-      route={{name, params, queries}}
+      route={{name, params: relayParams, queries}}
     />
   );
 }
@@ -71,7 +69,6 @@ match({history: browserHistory, routes}, (err, redirect, props) => {
   ReactDOM.render(
     <Router
       createElement={useRelay}
-      onUpdate={() => window.scrollTo(0, 0)}
       {...props}
     />,
     document.getElementById('react-root'),
