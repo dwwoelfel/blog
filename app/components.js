@@ -152,6 +152,7 @@ const PostIndex = createContainer(
           fragment on Viewer {
             posts(first: 5) {
               edges {
+                cursor,
                 node {
                   title,
                 }
