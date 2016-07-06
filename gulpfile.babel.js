@@ -1,9 +1,12 @@
 import _ from 'lodash';
+import {introspectionQuery, printSchema} from 'graphql/utilities'
 import express from 'express';
 import fs from 'fs';
+import {graphql} from 'graphql';
 import gulp from 'gulp';
 import nodemon from 'nodemon';
 import path from 'path';
+import Schema from './app/data';
 import webpack from 'webpack';
 import webpackDevMiddleware from 'webpack-dev-middleware';
 import webpackHotMiddleWare from 'webpack-hot-middleware';
@@ -11,7 +14,22 @@ import webpackHotMiddleWare from 'webpack-hot-middleware';
 // ------------------------------------------------------------
 // Tasks
 
-// Prod
+gulp.task('schema-build', done => {
+  graphql(Schema, introspectionQuery).then(
+    (res) => {
+      fs.writeFileSync(
+        path.join(__dirname, './schema.graphql'),
+        printSchema(Schema)
+      );
+      fs.writeFileSync(
+        path.join(__dirname, './schema.json'),
+        JSON.stringify(res, null, 2)
+      );
+      done();
+    },
+    done,
+  );
+});
 
 gulp.task('server-build', done => {
   webpack(SERVER_PROD_CONFIG).run(cb(done));
@@ -21,9 +39,7 @@ gulp.task('client-build', done => {
   webpack(CLIENT_PROD_CONFIG).run(cb(done));
 });
 
-gulp.task('build', ['server-build', 'client-build']);
-
-// Dev
+gulp.task('build', ['schema-build', 'server-build', 'client-build']);
 
 gulp.task('server-watch', done => {
   const doneOnce = _.once(done);
@@ -33,16 +49,16 @@ gulp.task('server-watch', done => {
   });
 });
 
-gulp.task('client-watch', done => {
-  runHotServer();
-  done();
-});
+gulp.task('client-watch', done => done(runHotServer()));
 
-gulp.task('default', ['server-watch', 'client-watch'], () => {
-  nodemon({
-    execMap: {js: 'node'},
-    script: path.join(__dirname, 'build/server'),
-  }).on('restart', () => console.log('[nodemon] restart'));
+gulp.task(
+  'default',
+  ['schema-build', 'server-watch', 'client-watch'],
+  () => {
+    nodemon({
+      execMap: {js: 'node'},
+      script: path.join(__dirname, 'build/server'),
+    }).on('restart', () => console.log('[nodemon] restart'));
 });
 
 const cb = done => (err, stats) => {
@@ -108,7 +124,11 @@ const CLIENT_DEV_CONFIG = {
     loaders: [
       {
         ...BABEL_LOADER,
-        query: {...BABEL_QUERY, presets: [...BABEL_QUERY.presets, 'react-hmre']},
+        query: {
+          ...BABEL_QUERY,
+          presets: [...BABEL_QUERY.presets, 'react-hmre'],
+          plugins: ['./relayPlugin', ...BABEL_QUERY.plugins]
+        },
       },
     ],
   },

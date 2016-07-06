@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import Relay, {createContainer} from 'react-relay';
 import {Link, IndexLink} from 'react-router';
 import marked from 'marked';
 import React, {PropTypes, Component} from 'react';
@@ -104,52 +104,53 @@ class App extends Component {
 
 const PER_PAGE = 10;
 
-const PostIndex = class extends Component {
-  static contextTypes = {
-    router: PropTypes.object.isRequired,
-  }
-
-  static propTypes = {
-    params: PropTypes.object.isRequired,
-    posts: PropTypes.object.isRequired,
-  }
-
-  render() {
-    return <span>posts/index</span>
-    const page = this._page();
-    return (
-      <div>
+const PostIndex = createContainer(
+  class extends Component {
+    render() {
+      return <span>posts/index</span>
+      return (
         <div>
-          {/*{paginate(this.props.posts, page).map(
-            post => <Post key={post.id} post={post} />
-          )}*/}
+          <div>
+            {/*{paginate(this.props.posts, page).map(
+              post => <Post key={post.id} post={post} />
+            )}*/}
+          </div>
+          <div style={PAGINATION_BAR_STYLE}>
+            <Link
+              key={`newer${page}`}
+              style={PAGINATION_BTN_STYLE}
+              to={`/page/${page - 1}`}>
+                &larr; Newer
+            </Link>
+            <Link
+              key={`older-${page}`}
+              style={PAGINATION_BTN_STYLE}
+              to={`/page/${page + 1}`}>
+                Older &rarr;
+            </Link>
+          </div>
         </div>
-        <div style={PAGINATION_BAR_STYLE}>
-          <Link
-            key={`newer${page}`}
-            style={PAGINATION_BTN_STYLE}
-            to={`/page/${page - 1}`}>
-              &larr; Newer
-          </Link>
-          <Link
-            key={`older-${page}`}
-            style={PAGINATION_BTN_STYLE}
-            to={`/page/${page + 1}`}>
-              Older &rarr;
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
-  _page = () => {
-    const n = +this.props.params.page;
-    return Math.max(
-      Number.isSafeInteger(n) ? n : 0,
-      0
-    );
-  }
-}
+      );
+    }
+  },
+  {
+    fragments: {
+      posts() {
+       return Relay.QL`
+        fragment on Viewer {
+          posts(first: 5) {
+            edges {
+              node {
+                title,
+              }
+          	}
+          }
+        }
+       `;
+     },
+    }
+  },
+);
 
 
 class PostShow extends Component {

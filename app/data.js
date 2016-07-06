@@ -9,7 +9,10 @@ import {
 import {
   fromGlobalId,
   globalIdField,
-  nodeDefinitions
+  nodeDefinitions,
+  connectionArgs,
+  connectionDefinitions,
+  connectionFromArray
 } from 'graphql-relay';
 
 // ------------------------------------------------------------
@@ -17,11 +20,13 @@ import {
 
 import POSTS from '../posts';
 
-function getPosts(limit = 0, offset = 5) {
+// TODO(stopachka)
+// we should not actually need offset, as relay should
+// should cache what is loaded. Look into this
+function getPosts() {
   return _.chain(POSTS)
     .values()
     .sortBy(p => -p.createdAt)
-    .slice(offset, offset + limit)
     .value()
   ;
 }
@@ -30,12 +35,32 @@ function getPost(id) {
   return POSTS[id];
 }
 
+function getViewer() {
+  return {
+    posts: [],
+  };
+};
+
 // ------------------------------------------------------------
 // Node Definitions
 
 const {nodeInterface, nodeField} = nodeDefinitions(
-  (globalId) => getPost(fromGlobalId(globalId).id),
-  (obj) => POST_TYPE,
+  (globalId) => {
+    const {type, id} = fromGlobalId(globalId);
+    switch (type) {
+      case 'Viewer':
+        return getViewer(id);
+      case 'Post':
+        return getPost(id);
+    }
+  },
+  (obj) => {
+    if (obj instanceof POST_TYPE) {
+      return POST_TYPE;
+    } else if (obj instanceof VIEWER_TYPE) {
+      return VIEWER_TYPE;
+    }
+  },
 );
 
 // ------------------------------------------------------------
@@ -65,19 +90,30 @@ const POST_TYPE = new GraphQLObjectType({
   interfaces: [nodeInterface],
 });
 
+const {connectionType: postConnection} = connectionDefinitions(
+  {name: 'Post', nodeType: POST_TYPE},
+);
+
+const VIEWER_TYPE = new GraphQLObjectType({
+  name: 'Viewer',
+  fields: {
+    id: globalIdField('Viewer'),
+    posts: {
+      type: postConnection,
+      args: connectionArgs,
+      resolve: (_, args) => connectionFromArray(getPosts(), args),
+    },
+  },
+  interfaces: [nodeInterface],
+});
+
 const QUERY_TYPE = new GraphQLObjectType({
   name: 'Query',
   fields: {
     node: nodeField,
-    posts: {
-      type: new GraphQLList(POST_TYPE),
-      args: {
-        limit: { type: GraphQLInt },
-        offset: { type: GraphQLInt }
-      },
-      resolve: function(_, {limit, offset}) {
-        return getPosts(limit, offset);
-      }
+    viewer: {
+      type: VIEWER_TYPE,
+      resolve: () => getViewer(),
     },
     post: {
       type: POST_TYPE,
@@ -86,7 +122,7 @@ const QUERY_TYPE = new GraphQLObjectType({
       },
       resolve: function(_, {id}) {
         return getPost(id);
-      }
+      },
     },
   },
 });

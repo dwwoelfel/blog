@@ -1,0 +1,43 @@
+schema {
+  query: Query
+}
+
+interface Node {
+  id: ID!
+}
+
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+  endCursor: String
+}
+
+type Post implements Node {
+  id: ID!
+  title: String
+  content: String
+  createdAt: String
+  updatedAt: String
+}
+
+type PostConnection {
+  pageInfo: PageInfo!
+  edges: [PostEdge]
+}
+
+type PostEdge {
+  node: Post
+  cursor: String!
+}
+
+type Query {
+  node(id: ID!): Node
+  viewer: Viewer
+  post(id: String): Post
+}
+
+type Viewer implements Node {
+  id: ID!
+  posts(after: String, first: Int, before: String, last: Int): PostConnection
+}

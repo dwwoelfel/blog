@@ -3,7 +3,6 @@ import fs from 'fs';
 import graphqlHTTP from 'express-graphql';
 import path from 'path';
 import React from 'react';
-import routes from './routes';
 import Schema from './data';
 
 const app = express();
