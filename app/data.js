@@ -20,9 +20,6 @@ import {
 
 import POSTS from '../posts';
 
-// TODO(stopachka)
-// we should not actually need offset, as relay should
-// should cache what is loaded. Look into this
 function getPosts() {
   return _.chain(POSTS)
     .values()
