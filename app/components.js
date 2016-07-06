@@ -157,17 +157,28 @@ const PostIndex = createContainer(
 );
 
 
-class PostShow extends Component {
-  static propTypes = {
-    params: PropTypes.object.isRequired,
-    post: PropTypes.object,
+const PostShow = createContainer(
+  class extends Component {
+    render() {
+      return (
+        <Post post={this.props.post} />
+      )
+    }
+  },
+  {
+    fragments: {
+      post() {
+        return Relay.QL`
+          fragment on Post {
+            id,
+            title,
+            content,
+          }
+        `;
+      }
+    }
   }
-
-  render() {
-    return <span>post/show</span>;
-    return this.props.post ? <Post post={this.props.post} /> : null;
-  }
-};
+);
 
 // ------------------------------------------------------------
 // Components

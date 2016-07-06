@@ -39,7 +39,7 @@ const routes =  (
     />
     <Route
       name="post-show"
-      path="post/:post"
+      path="post/:id"
       component={PostShow}
       queries={PostQuery}
     />

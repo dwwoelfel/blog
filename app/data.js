@@ -121,7 +121,7 @@ const QUERY_TYPE = new GraphQLObjectType({
         id: { type: GraphQLString },
       },
       resolve: function(_, {id}) {
-        return getPost(id);
+        return getPost(fromGlobalId(id).id);
       },
     },
   },
