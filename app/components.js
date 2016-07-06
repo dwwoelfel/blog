@@ -107,7 +107,12 @@ const PER_PAGE = 10;
 const PostIndex = createContainer(
   class extends Component {
     render() {
-      return <span>posts/index</span>
+      const page = this._page();
+      return <div>
+        page: {page}
+        viewer:
+          <pre>{JSON.stringify(this.props.viewer, null, 2)}</pre>
+      </div>
       return (
         <div>
           <div>
@@ -132,21 +137,28 @@ const PostIndex = createContainer(
         </div>
       );
     }
+    _page = () => {
+      const n = +this.props.params.page;
+      return Math.max(
+        Number.isSafeInteger(n) ? n : 0,
+        0
+      );
+    }
   },
   {
     fragments: {
-      posts() {
-       return Relay.QL`
-        fragment on Viewer {
-          posts(first: 5) {
-            edges {
-              node {
-                title,
-              }
-          	}
+      viewer() {
+        return Relay.QL`
+          fragment on Viewer {
+            posts(first: 5) {
+              edges {
+                node {
+                  title,
+                }
+            	}
+            }
           }
-        }
-       `;
+        `;
      },
     }
   },

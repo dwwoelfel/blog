@@ -6,16 +6,29 @@ import React, {Component} from 'react';
 import ReactDOM from 'react-dom';
 
 const ViewerQuery = {
-  posts(Component) {
+  viewer(Component) {
     return Relay.QL`
       query {
         viewer {
-          ${Component.getFragment('posts')}
+          ${Component.getFragment('viewer')}
         }
       }
     `;
   },
-}
+};
+
+const PostQuery = {
+  post(Component) {
+    return Relay.QL`
+      query {
+        post {
+          ${Component.getFragment('post')}
+        }
+      }
+    `;
+  },
+};
+
 
 const routes =  (
   <Route path="/" component={App}>
@@ -30,7 +43,12 @@ const routes =  (
       component={PostIndex}
       queries={ViewerQuery}
     />
-    <Route path="post/:post" component={PostShow} />
+    <Route
+      name="post-show"
+      path="post/:post"
+      component={PostShow}
+      queries={PostQuery}
+    />
   </Route>
 );
 
