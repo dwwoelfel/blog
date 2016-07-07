@@ -169,13 +169,7 @@ const Pagination = ({first}) => {
 Pagination.propTypes = {first: PropTypes.number.isRequired};
 
 const PostShow = createContainer(
-  class extends Component {
-    render() {
-      return (
-        <Post post={this.props.post} />
-      )
-    }
-  },
+  Post,
   {
     fragments: {
       post() {
