@@ -107,28 +107,21 @@ const PER_PAGE = 10;
 const PostIndex = createContainer(
   class extends Component {
     render() {
-      const posts = this.props.viewer.posts;
-
+      const {edges, pageInfo} = this.props.viewer.posts;
       return (
         <div>
           <div>
             {
-              posts
-              .edges
+              edges
               .map(x => x.node)
               .map(post => <Post key={post.id} post={post} />)
             }
           </div>
-          <div style={PAGINATION_BAR_STYLE}>
-            <Link
-              style={PAGINATION_BTN_STYLE}
-              to={{
-                pathname: '/',
-                query: {first: posts.edges.length + PER_PAGE}
-              }}>
-                More &rarr;
-            </Link>
-          </div>
+          {
+            pageInfo.hasNextPage
+              ? <Pagination first={edges.length + PER_PAGE} />
+              : null
+          }
         </div>
       );
     }
@@ -147,6 +140,9 @@ const PostIndex = createContainer(
                   title,
                   content,
                 }
+            	}
+              pageInfo {
+                hasNextPage,
               }
             }
           }
@@ -156,6 +152,21 @@ const PostIndex = createContainer(
   },
 );
 
+const Pagination = ({first}) => {
+  return (
+    <div style={PAGINATION_BAR_STYLE}>
+      <Link
+        style={PAGINATION_BTN_STYLE}
+        to={{
+          pathname: '/',
+          query: {first}
+        }}>
+          More &rarr;
+      </Link>
+    </div>
+  );
+}
+Pagination.propTypes = {first: PropTypes.number.isRequired};
 
 const PostShow = createContainer(
   class extends Component {
