@@ -4,6 +4,130 @@ import marked from 'marked';
 import React, {PropTypes, Component} from 'react';
 
 // ------------------------------------------------------------
+// Containers
+
+class App extends Component {
+  render() {
+    return (
+      <div style={APP_STYLE}>
+        <Header />
+        {this.props.children}
+      </div>
+    );
+  }
+}
+
+const PER_PAGE = 10;
+
+const PostIndex = createContainer(
+  class extends Component {
+    render() {
+      const {edges, pageInfo} = this.props.viewer.posts;
+      return (
+        <div>
+          <div>
+            {
+              edges
+              .map(x => x.node)
+              .map(post => <Post key={post.id} post={post} />)
+            }
+          </div>
+          {
+            pageInfo.hasNextPage
+              ? <Pagination first={edges.length + PER_PAGE} />
+              : null
+          }
+        </div>
+      );
+    }
+  },
+  {
+    initialVariables: {first: PER_PAGE},
+    fragments: {
+      viewer() {
+        return Relay.QL`
+          fragment on Viewer {
+            posts(first: $first) {
+              edges {
+                cursor,
+                node {
+                  id,
+                  title,
+                  content,
+                }
+            	}
+              pageInfo {
+                hasNextPage,
+              }
+            }
+          }
+        `;
+     },
+    }
+  },
+);
+
+const PostShow = createContainer(
+  Post,
+  {
+    fragments: {
+      post() {
+        return Relay.QL`
+          fragment on Post {
+            id,
+            title,
+            content,
+          }
+        `;
+      }
+    }
+  }
+);
+
+// ------------------------------------------------------------
+// Components
+
+function Header() {
+  return (
+    <div style={HEADER_STYLE}>
+      <IndexLink to="/" style={NAME_STYLE}>Stepan Parunashvili</IndexLink>
+      <a style={BUTTON_STYLE} href="mailto:stepan.p@gmail.com">Contact</a>
+    </div>
+  );
+}
+
+function Post({post}) {
+  return (
+    <div style={POST_STYLE}>
+      <div style={HEADLINE_STYLE}>
+        <Link style={TITLE_STYLE} to={`/post/${post.id}`}>{post.title}</Link>
+      </div>
+      <div
+        style={CONTENT_STYLE}
+        dangerouslySetInnerHTML={{__html: marked(post.content)}}>
+      </div>
+    </div>
+  );
+}
+Post.propTypes = {post: PropTypes.object.isRequired};
+
+const Pagination = ({first}) => {
+  return (
+    <div style={PAGINATION_BAR_STYLE}>
+      <Link
+        style={PAGINATION_BTN_STYLE}
+        to={{
+          pathname: '/',
+          query: {first}
+        }}>
+          More &rarr;
+      </Link>
+    </div>
+  );
+}
+Pagination.propTypes = {first: PropTypes.number.isRequired};
+
+// ------------------------------------------------------------
 // style
 
 const DIN_REGULAR = 'DIN Next W01 Regular';
@@ -88,127 +212,5 @@ const PAGINATION_BTN_STYLE = {
   fontSize: '15px',
 };
 
-// ------------------------------------------------------------
-// Containers
-
-class App extends Component {
-  render() {
-    return (
-      <div style={APP_STYLE}>
-        <Header />
-        {this.props.children}
-      </div>
-    );
-  }
-}
-
-const PER_PAGE = 10;
-
-const PostIndex = createContainer(
-  class extends Component {
-    render() {
-      const {edges, pageInfo} = this.props.viewer.posts;
-      return (
-        <div>
-          <div>
-            {
-              edges
-              .map(x => x.node)
-              .map(post => <Post key={post.id} post={post} />)
-            }
-          </div>
-          {
-            pageInfo.hasNextPage
-              ? <Pagination first={edges.length + PER_PAGE} />
-              : null
-          }
-        </div>
-      );
-    }
-  },
-  {
-    initialVariables: {first: PER_PAGE},
-    fragments: {
-      viewer() {
-        return Relay.QL`
-          fragment on Viewer {
-            posts(first: $first) {
-              edges {
-                cursor,
-                node {
-                  id,
-                  title,
-                  content,
-                }
-            	}
-              pageInfo {
-                hasNextPage,
-              }
-            }
-          }
-        `;
-     },
-    }
-  },
-);
-
-const Pagination = ({first}) => {
-  return (
-    <div style={PAGINATION_BAR_STYLE}>
-      <Link
-        style={PAGINATION_BTN_STYLE}
-        to={{
-          pathname: '/',
-          query: {first}
-        }}>
-          More &rarr;
-      </Link>
-    </div>
-  );
-}
-Pagination.propTypes = {first: PropTypes.number.isRequired};
-
-const PostShow = createContainer(
-  Post,
-  {
-    fragments: {
-      post() {
-        return Relay.QL`
-          fragment on Post {
-            id,
-            title,
-            content,
-          }
-        `;
-      }
-    }
-  }
-);
-
-// ------------------------------------------------------------
-// Components
-
-function Header() {
-  return (
-    <div style={HEADER_STYLE}>
-      <IndexLink to="/" style={NAME_STYLE}>Stepan Parunashvili</IndexLink>
-      <a style={BUTTON_STYLE} href="mailto:stepan.p@gmail.com">Contact</a>
-    </div>
-  );
-}
-
-function Post({post}) {
-  return (
-    <div style={POST_STYLE}>
-      <div style={HEADLINE_STYLE}>
-        <Link style={TITLE_STYLE} to={`/post/${post.id}`}>{post.title}</Link>
-      </div>
-      <div
-        style={CONTENT_STYLE}
-        dangerouslySetInnerHTML={{__html: marked(post.content)}}>
-      </div>
-    </div>
-  );
-}
 
 export {App, PostIndex, PostShow};
