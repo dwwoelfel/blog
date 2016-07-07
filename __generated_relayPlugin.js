@@ -1,4 +1,6 @@
-{
+
+          var makeRelayPlugin = require('babel-relay-plugin');
+          var schema = {
   "data": {
     "__schema": {
       "queryType": {
@@ -1388,3 +1390,6 @@
     }
   }
 }
+
+          module.exports = makeRelayPlugin(schema.data);
+        

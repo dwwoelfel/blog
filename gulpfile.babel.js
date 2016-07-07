@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import {introspectionQuery, printSchema} from 'graphql/utilities'
+import {introspectionQuery} from 'graphql/utilities'
 import express from 'express';
 import fs from 'fs';
 import {graphql} from 'graphql';
@@ -18,12 +18,13 @@ gulp.task('schema-build', done => {
   graphql(Schema, introspectionQuery).then(
     (res) => {
       fs.writeFileSync(
-        path.join(__dirname, './schema.graphql'),
-        printSchema(Schema)
-      );
-      fs.writeFileSync(
-        path.join(__dirname, './schema.json'),
-        JSON.stringify(res, null, 2)
+        path.join(__dirname, './__generated_relayPlugin.js'),
+        `
+          var makeRelayPlugin = require('babel-relay-plugin');
+          var schema = ${JSON.stringify(res, null, 2)}
+
+          module.exports = makeRelayPlugin(schema.data);
+        `
       );
       done();
     },
@@ -127,7 +128,7 @@ const CLIENT_DEV_CONFIG = {
         query: {
           ...BABEL_QUERY,
           presets: [...BABEL_QUERY.presets, 'react-hmre'],
-          plugins: ['./relayPlugin', ...BABEL_QUERY.plugins]
+          plugins: ['./__generated_relayPlugin', ...BABEL_QUERY.plugins]
         },
       },
     ],
@@ -143,7 +144,7 @@ const CLIENT_PROD_CONFIG = {
         ...BABEL_LOADER,
         query: {
           ...BABEL_QUERY,
-          plugins: ['./relayPlugin', ...BABEL_QUERY.plugins]
+          plugins: ['./__generated_relayPlugin', ...BABEL_QUERY.plugins]
         },
       },
     ],
